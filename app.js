@@ -34,17 +34,17 @@ app.get('/', (req, res) => {
 
 app.get('/posts', async (req, res) => {
     const blogposts = await Blogpost.find({});
-    res.render('index', { blogposts })
+    res.render('posts/index', { blogposts })
 })
 
 app.get('/posts/new', (req, res) => {
-    res.render('new');
+    res.render('posts/new');
 })
 
 app.get('/posts/:id', async (req, res) => {
     const { id } = req.params;
     const blogpost = await Blogpost.findById(id);
-    res.render('show', { blogpost })
+    res.render('posts/show', { blogpost })
 })
 
 app.post('/posts', async (req, res) => {
@@ -56,7 +56,7 @@ app.post('/posts', async (req, res) => {
 app.get('/posts/:id/edit', async (req, res) => {
     const { id } = req.params;
     const blogpost = await Blogpost.findById(id);
-    res.render('edit', { blogpost });
+    res.render('posts/edit', { blogpost });
 })
 
 app.put('/posts/:id', async (req, res) => {
@@ -72,7 +72,7 @@ app.delete('/posts/:id', async (req, res) => {
 })
 
 app.get('*', (req, res) => {
-    res.send('404 NOT FOUND')
+    res.render('posts/notfound');
 })
 
 app.listen(3000, () => {
