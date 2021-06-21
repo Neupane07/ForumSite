@@ -2,6 +2,10 @@ const express = require('express');
 const path = require('path')
 const ejsMate = require('ejs-mate')
 const methodOverride = require('method-override')
+const Joi = require('joi')
+const { postSchema } = require('./schemas.js')
+const catchAsync = require('./utils/catchAsync')
+const ExpressError = require('./utils/ExpressError')
 const Blogpost = require('./models/blogpost')
 const mongoose = require('mongoose');
 
@@ -28,51 +32,69 @@ app.engine('ejs', ejsMate)
 app.set('view engine', 'ejs')
 app.set('views', path.join(__dirname, 'views'))
 
+const validatePost = (req, res, next) => {
+    const { error } = postSchema.validate(req.body);
+    if (error) {
+        const msg = error.details.map(el => el.message).join(',')
+        throw new ExpressError(msg, 400)
+    } else {
+        next();
+    }
+}
+
+
+
 app.get('/', (req, res) => {
-    res.send('HOME PAGE')
+    res.render('home')
 })
 
-app.get('/posts', async (req, res) => {
+app.get('/posts', catchAsync(async (req, res) => {
     const blogposts = await Blogpost.find({});
     res.render('posts/index', { blogposts })
-})
+}))
 
 app.get('/posts/new', (req, res) => {
     res.render('posts/new');
 })
 
-app.get('/posts/:id', async (req, res) => {
+app.get('/posts/:id', catchAsync(async (req, res) => {
     const { id } = req.params;
     const blogpost = await Blogpost.findById(id);
     res.render('posts/show', { blogpost })
-})
+}))
 
-app.post('/posts', async (req, res) => {
+app.post('/posts', validatePost, catchAsync(async (req, res) => {
     const blogpost = new Blogpost(req.body.post)
     await blogpost.save();
     res.redirect(`/posts/${blogpost._id}`)
-})
+}))
 
-app.get('/posts/:id/edit', async (req, res) => {
+app.get('/posts/:id/edit', catchAsync(async (req, res) => {
     const { id } = req.params;
     const blogpost = await Blogpost.findById(id);
     res.render('posts/edit', { blogpost });
-})
+}))
 
-app.put('/posts/:id', async (req, res) => {
+app.put('/posts/:id', validatePost, catchAsync(async (req, res) => {
     const { id } = req.params;
     const blogpost = await Blogpost.findByIdAndUpdate(id, { ...req.body.post })
     res.redirect(`/posts/${id}`)
-})
+}))
 
-app.delete('/posts/:id', async (req, res) => {
+app.delete('/posts/:id', catchAsync(async (req, res) => {
     const { id } = req.params;
     const oldpost = await Blogpost.findByIdAndDelete(id);
     res.redirect('/posts');
+}))
+
+app.all('*', (req, res) => {
+    next(new ExpressError('Page Not Found', 404))
 })
 
-app.get('*', (req, res) => {
-    res.render('posts/notfound');
+app.use((err, req, res, next) => {
+    const { statusCode = 500 } = err;
+    if (!err.message) err.message = 'OH NO! Something went wrong!';
+    res.status(statusCode).render('error', { err })
 })
 
 app.listen(3000, () => {
