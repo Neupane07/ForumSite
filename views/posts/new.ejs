@@ -2,22 +2,22 @@
     <div class="row">
         <h1 class="text-center">Add A New Post</h1>
         <div class="col-6 offset-3">
-            <form action="/posts" method="POST">
+            <form action="/posts" method="POST" class="validated-form" novalidate>
                 <div class="mb-3">
                     <label class="form-label" for="title">Title</label>
-                    <input class="form-control" type="text" name="post[title]" id="title">
+                    <input class="form-control" type="text" name="post[title]" id="title" required>
                 </div>
                 <div class=" mb-3">
                     <label class="form-label" for="author">Author</label>
-                    <input class="form-control" type="text" name="post[author]" id="author">
+                    <input class="form-control" type="text" name="post[author]" id="author" required>
                 </div>
                 <div class=" mb-3">
                     <label class="form-label" for="image">Image Url</label>
-                    <input class="form-control" type="text" name="post[image]" id="image">
+                    <input class="form-control" type="text" name="post[image]" id="image" required>
                 </div>
                 <div class=" mb-3">
                     <label class="form-label" for="body">Body</label>
-                    <textarea class="form-control" type="text" name="post[body]" id="body"> </textarea>
+                    <textarea class="form-control" type="text" name="post[body]" id="body" required></textarea>
                 </div>
                 <div class="mb-3">
                     <button class="btn btn-info">Add Post</button>

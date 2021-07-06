@@ -1,14 +1,14 @@
 <% layout('layouts/boilerplate') %>
 
     <div class="row">
-        <div class="col-6 offset-3">
+        <div class="col-7">
             <div class="card mb-3">
                 <img src="<%= blogpost.image %> "" class=" card-img-top" alt="">
                 <div class="card-body">
                     <h5 class="card-title">
                         <%= blogpost.title%>
                     </h5>
-                    <p class="card-text">
+                    <p class="card-text" style="white-space: pre-line;">
                         <%= blogpost.body %>
                     </p>
                 </div>
@@ -27,8 +27,32 @@
 
             </div>
         </div>
-    </div>
+        <div class="col-5">
+            <h2>Leave a comment</h2>
+            <form action="/posts/<%= blogpost.id %>/comments" method="POST" class="mb-3 validated-form" novalidate>
 
-    <footer>
-        <a href="/posts">All Posts</a>
-    </footer>
+                <div class="mb-3">
+                    <label class="form-label" for="body">comment</label>
+                    <textarea class="form-control" name="comment[body]" id="body" cols="30" rows="3"
+                        required></textarea>
+                </div>
+                <button class="btn btn-success">Submit</button>
+            </form>
+
+            <% for(let comment of comments){%>
+                <div class="card mb-3">
+                    <div class="card-body">
+
+                        <p class="card-text">
+                            comment: <%= comment.body%>
+                        </p>
+                        <form action="/posts/<%=blogpost._id%>/comments/<%= comment._id %>?_method=DELETE"
+                            method="POST">
+                            <button class=" btn sm-btn btn-danger">Delete</button>
+                        </form>
+                    </div>
+                </div>
+
+                <% }%>
+        </div>
+    </div>

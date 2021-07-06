@@ -2,13 +2,12 @@ const express = require('express');
 const path = require('path')
 const ejsMate = require('ejs-mate')
 const methodOverride = require('method-override')
-const Joi = require('joi')
-const { postSchema } = require('./schemas.js')
+const { postSchema, commentSchema } = require('./schemas.js')
 const catchAsync = require('./utils/catchAsync')
 const ExpressError = require('./utils/ExpressError')
 const Blogpost = require('./models/blogpost')
+const Comment = require('./models/comment')
 const mongoose = require('mongoose');
-
 
 mongoose.connect('mongodb://localhost:27017/jhanjeri-forum', {
     useNewUrlParser: true,
@@ -42,8 +41,17 @@ const validatePost = (req, res, next) => {
     }
 }
 
+const validateComment = (req, res, next) => {
+    const { error } = commentSchema.validate(req.body);
+    if (error) {
+        const msg = error.details.map(el => el.message).join(',')
+        throw new ExpressError(msg, 400)
+    } else {
+        next()
+    }
+}
 
-
+//Routes
 app.get('/', (req, res) => {
     res.render('home')
 })
@@ -57,22 +65,24 @@ app.get('/posts/new', (req, res) => {
     res.render('posts/new');
 })
 
-app.get('/posts/:id', catchAsync(async (req, res) => {
-    const { id } = req.params;
-    const blogpost = await Blogpost.findById(id);
-    res.render('posts/show', { blogpost })
-}))
-
 app.post('/posts', validatePost, catchAsync(async (req, res) => {
     const blogpost = new Blogpost(req.body.post)
     await blogpost.save();
     res.redirect(`/posts/${blogpost._id}`)
 }))
 
+app.get('/posts/:id', catchAsync(async (req, res) => {
+    const { id } = req.params;
+    const blogpost = await Blogpost.findById(id).populate('comments');
+    const comments = blogpost.comments;
+    res.render('posts/show', { blogpost, comments })
+}))
+
 app.get('/posts/:id/edit', catchAsync(async (req, res) => {
     const { id } = req.params;
     const blogpost = await Blogpost.findById(id);
     res.render('posts/edit', { blogpost });
+
 }))
 
 app.put('/posts/:id', validatePost, catchAsync(async (req, res) => {
@@ -85,6 +95,23 @@ app.delete('/posts/:id', catchAsync(async (req, res) => {
     const { id } = req.params;
     const oldpost = await Blogpost.findByIdAndDelete(id);
     res.redirect('/posts');
+}))
+
+app.post('/posts/:id/comments', validateComment, catchAsync(async (req, res) => {
+    const { id } = req.params;
+    const blogpost = await Blogpost.findById(id);
+    const comment = new Comment(req.body.comment);
+    blogpost.comments.push(comment);
+    await comment.save();
+    await blogpost.save();
+    res.redirect(`/posts/${id}`)
+}))
+
+app.delete('/posts/:id/comments/:commentId', catchAsync(async (req, res) => {
+    const { id, commentId } = req.params;
+    await Blogpost.findByIdAndUpdate(id, { $pull: { comments: commentId } });
+    await Comment.findByIdAndDelete(commentId);
+    res.redirect(`/posts/${id}`)
 }))
 
 app.all('*', (req, res) => {
