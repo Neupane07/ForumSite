@@ -2,24 +2,26 @@
     <div class="row">
         <h1 class="text-center">Edit Post</h1>
         <div class="col-6 offset-3">
-            <form action="/posts/<%= blogpost._id %>?_method=PUT " method="POST">
+            <form class="validated-form" action="/posts/<%= blogpost._id %>?_method=PUT " method="POST" novalidate>
                 <div class="mb-3">
                     <label class="form-label" for="title">Title</label>
-                    <input class="form-control" type="text" name="post[title]" id="title" value="<%= blogpost.title %>">
+                    <input class="form-control" type="text" name="post[title]" id="title" value="<%= blogpost.title %>"
+                        required>
                 </div>
                 <div class=" mb-3">
                     <label class="form-label" for="author">Author</label>
                     <input class="form-control" type="text" name="post[author]" id="author"
-                        value="<%= blogpost.author%>">
+                        value="<%= blogpost.author%>" required>
                 </div>
                 <div class=" mb-3">
                     <label class="form-label" for="image">Image Url</label>
-                    <input class="form-control" type="text" name="post[image]" id="image" value="<%= blogpost.image %>">
+                    <input class="form-control" type="text" name="post[image]" id="image" value="<%= blogpost.image %>"
+                        required>
                 </div>
                 <div class=" mb-3">
                     <label class="form-label" for="body">Body</label>
-                    <textarea class="form-control" type="text" name="post[body]"
-                        id="description"><%= blogpost.body %> </textarea>
+                    <textarea class="form-control" type="text" name="post[body]" id="description"
+                        required><%= blogpost.body %> </textarea>
                 </div>
                 <div class="mb-3">
                     <button class="btn btn-info">Update Post</button>
