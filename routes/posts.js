@@ -7,6 +7,7 @@ const { postSchema } = require('../schemas');
 const ExpressError = require('../utils/ExpressError');
 const catchAsync = require('../utils/catchAsync');
 
+const isLoggedIn = require('../middleware')
 const validatePost = (req, res, next) => {
     const { error } = postSchema.validate(req.body);
     if (error) {
@@ -22,11 +23,11 @@ router.get('/', catchAsync(async (req, res) => {
     res.render('posts/index', { blogposts })
 }))
 
-router.get('/new', (req, res) => {
+router.get('/new', isLoggedIn, (req, res) => {
     res.render('posts/new');
 })
 
-router.post('/', validatePost, catchAsync(async (req, res) => {
+router.post('/', isLoggedIn, validatePost, catchAsync(async (req, res) => {
     const blogpost = new Blogpost(req.body.post)
     await blogpost.save();
     req.flash('success', 'Sucessfully created a new post!')
@@ -44,7 +45,7 @@ router.get('/:id', catchAsync(async (req, res) => {
     res.render('posts/show', { blogpost, comments })
 }))
 
-router.get('/:id/edit', catchAsync(async (req, res) => {
+router.get('/:id/edit', isLoggedIn, catchAsync(async (req, res) => {
     const { id } = req.params;
     const blogpost = await Blogpost.findById(id);
     if (!blogpost) {
@@ -55,14 +56,14 @@ router.get('/:id/edit', catchAsync(async (req, res) => {
 
 }))
 
-router.put('/:id', validatePost, catchAsync(async (req, res) => {
+router.put('/:id', isLoggedIn, validatePost, catchAsync(async (req, res) => {
     const { id } = req.params;
     const blogpost = await Blogpost.findByIdAndUpdate(id, { ...req.body.post })
     req.flash('success', 'Successfully updated the post')
     res.redirect(`/posts/${blogpost._id}`)
 }))
 
-router.delete('/:id', catchAsync(async (req, res) => {
+router.delete('/:id', isLoggedIn, catchAsync(async (req, res) => {
     const { id } = req.params;
     const oldpost = await Blogpost.findByIdAndDelete(id);
     res.redirect('/posts');

@@ -1,15 +1,19 @@
 const express = require('express');
 const path = require('path')
 const ejsMate = require('ejs-mate')
+const mongoose = require('mongoose');
 const methodOverride = require('method-override')
 const session = require('express-session')
 const flash = require('connect-flash');
 const ExpressError = require('./utils/ExpressError')
+const passport = require('passport');
+const LocalStrategy = require('passport-local')
 
-const mongoose = require('mongoose');
+const User = require('./models/user');
 
-const posts = require('./routes/posts');
-const comments = require('./routes/comments');
+const postRoutes = require('./routes/posts');
+const commentRoutes = require('./routes/comments');
+const userRoutes = require('./routes/users')
 
 mongoose.connect('mongodb://localhost:27017/jhanjeri-forum', {
     useNewUrlParser: true,
@@ -47,16 +51,26 @@ const sessionConfig = {
 app.use(session(sessionConfig))
 app.use(flash());
 
+//paspport config
+app.use(passport.initialize());
+app.use(passport.session());
+passport.use(new LocalStrategy(User.authenticate()))
+
+passport.serializeUser(User.serializeUser());
+passport.deserializeUser(User.deserializeUser());
+
 //middleware for setting local flash variables
 app.use((req, res, next) => {
+    res.locals.currentUser = req.user;
     res.locals.success = req.flash('success');
     res.locals.error = req.flash('error');
     next();
 })
 
 //Routes
-app.use('/posts', posts);
-app.use('/posts/:id/comments', comments);
+app.use('/posts', postRoutes);
+app.use('/posts/:id/comments', commentRoutes);
+app.use('/', userRoutes)
 
 app.get('/', (req, res) => {
     res.render('home')
